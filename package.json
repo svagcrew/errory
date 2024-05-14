@@ -17,6 +17,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "type": "module",
   "main": "./dist/index.js",
   "files": [
     "./dist/**/*"
@@ -28,7 +29,7 @@
     "types": "svag-ts types",
     "build": "svag-ts build",
     "start": "svag-ts start",
-    "prepare": "ts-patch install -s && husky",
+    "prepare": "husky",
     "lint": "svag-lint lint",
     "test": "jest"
   },
@@ -36,21 +37,21 @@
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.1",
     "@types/node": "^20.12.7",
+    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "eslint": "^9.0.0",
     "husky": "^9.0.11",
     "jest": "30.0.0-alpha.3",
+    "onchange": "^7.1.0",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
-    "svag-husky": "^0.1.6",
-    "svag-jest": "^0.1.25",
-    "svag-lint": "^0.1.29",
-    "svag-prettier": "^0.1.21",
-    "svag-ts": "^0.1.25",
+    "svag-husky": "^0.1.27",
+    "svag-jest": "^0.1.28",
+    "svag-lint": "^0.1.50",
+    "svag-prettier": "^0.1.41",
+    "svag-ts": "^0.1.46",
     "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
-    "ts-patch": "^3.1.2",
+    "tsc-alias": "^1.8.10",
     "typescript": "^5.4.5"
   },
   "dependencies": {

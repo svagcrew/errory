@@ -84,6 +84,7 @@ type CreateErroryInput<TCode extends string> = {
   defaultHttpStatus?: number | keyof typeof httpStatuses
   defaultExpected?: boolean
   defaultMeta?: Record<string, any>
+  defaultTag?: string
 }
 
 type ErroryInput<TCode extends string> = {
@@ -91,6 +92,8 @@ type ErroryInput<TCode extends string> = {
   cause?: any
   code?: TCode
   codes?: TCode[]
+  tag?: string
+  tags?: string[]
   httpStatus?: number | keyof typeof httpStatuses
   expected?: boolean
   meta?: Record<string, any>
@@ -125,6 +128,7 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
   const defaultHttpStatusGlobal = createInput?.defaultHttpStatus || httpStatuses.INTERNAL_SERVER_ERROR
   const defaultExpectedGlobal = createInput?.defaultExpected || false
   const defaultMetaGlobal = createInput?.defaultMeta || {}
+  const defaultTagGlobal = createInput?.defaultTag || 'unknown'
 
   class Errory extends Error {
     constructor()
@@ -137,12 +141,13 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
       this.cause = input.cause
       const causeErrory = input.cause instanceof Errory ? input.cause : null
 
-      const defaultCode = this.code
-      this.code = input.code || defaultCode
-      const defaultCodes = this.codes
       const exCodes = causeErrory?.codes || []
-      this.codes = [...new Set([...(input.codes || []), ...defaultCodes, ...exCodes])]
-      this.codes = input.code ? [...new Set([input.code, ...this.codes])] : this.codes
+      this.code = input.code || causeErrory?.code || unexpectedCodes[0] || allAvailableCodes[0]
+      this.codes = [...new Set([this.code, ...(input.codes || []), ...exCodes])]
+      const exTags = causeErrory?.tags || []
+      this.tag = input.tag || this.tags[0] || defaultTagGlobal
+      this.tags = [...new Set([this.tag, ...(input.tags || []), ...exTags])]
+
       const defaultMessage = this.message
       this.message = input.message || defaultMessage
       const exMessages = causeErrory?.messages || []
@@ -169,8 +174,10 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
     cause?: any
     message: string = defaultMessageGlobal
     messages: string[] = []
-    code?: TCode
+    code: TCode
     codes: TCode[] = []
+    tag: string
+    tags: string[] = []
     httpStatus: number = httpStatuses.INTERNAL_SERVER_ERROR
     expected: boolean = defaultExpectedGlobal
     meta: Record<string, any> = defaultMetaGlobal
@@ -254,12 +261,17 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
   }
 }
 
-export const prettifyErroryData = <T>(data: T): T => {
+export const prepareErroryDataForHumanLogging = <T>(data: T): T => {
   const result: any = cloneDeep(data)
   if (result?.codes?.length > 1) {
     delete result?.code
   } else {
     delete result?.codes
+  }
+  if (result?.tags?.length > 1) {
+    delete result?.tag
+  } else {
+    delete result?.tags
   }
   if (result?.messages?.length <= 1) {
     delete result?.messages
@@ -267,3 +279,6 @@ export const prettifyErroryData = <T>(data: T): T => {
   delete result?.onlyErroriesHaveThisProperty
   return result
 }
+
+export type ToErroryType<T extends string = string> = ReturnType<typeof createErroryThings<T>>['toErrory']
+export type ErroryType<T extends string = string> = InstanceType<ReturnType<typeof createErroryThings<T>>['Errory']>

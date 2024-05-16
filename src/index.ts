@@ -1,4 +1,4 @@
-import cloneDeep from 'lodash/cloneDeep'
+import cloneDeep from 'lodash/cloneDeep.js'
 
 const httpStatuses = {
   CONTINUE: 100,
@@ -281,4 +281,7 @@ export const prepareErroryDataForHumanLogging = <T>(data: T): T => {
 }
 
 export type ToErroryType<T extends string = string> = ReturnType<typeof createErroryThings<T>>['toErrory']
-export type ErroryType<T extends string = string> = InstanceType<ReturnType<typeof createErroryThings<T>>['Errory']>
+export type ErroryType<T extends string = string> = ReturnType<typeof createErroryThings<T>>['Errory']
+export type ErroryInstanceType<T extends string = string> = InstanceType<
+  ReturnType<typeof createErroryThings<T>>['Errory']
+>

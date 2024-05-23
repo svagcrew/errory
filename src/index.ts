@@ -166,9 +166,9 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
       const defaultMeta = this.meta
       this.meta = { ...defaultMeta, ...input.meta }
       const exStack = this.cause?.stack
-      // const thisStack = this.stack?.split('\n').slice(0, 2).join('\n') || null
-      const thisStack = this.stack?.split('\n').join('\n') || null
-      this.stack = [thisStack, exStack].filter(Boolean).join('\n')
+      const thisStackCutted = this.stack?.split('\n').slice(0, 2).join('\n') || null
+      const newStack = exStack ? `${thisStackCutted}\n${exStack}` : this.stack
+      this.stack = newStack
     }
 
     cause?: any

@@ -251,9 +251,15 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
     })
   }
 
+  Object.assign(Errory, {
+    toErrory,
+  })
+
   return {
     toErrory,
-    Errory,
+    Errory: Errory as typeof Errory & {
+      toErrory: typeof toErrory
+    },
     ErroryExpected,
     ErroryUnexpected,
     ...classesByAvailableCodes,

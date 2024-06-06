@@ -105,18 +105,39 @@ type ErroryArgs<TCode extends string> =
   | [string | undefined]
   | [string | undefined, ErroryInputWithoutMessage<TCode>]
 
-const parseInputWithDefaultMessage = (args: ErroryArgs<any>, defaultMessage: string) => {
-  if (args.length === 0) {
-    return { message: defaultMessage }
-  } else if (args.length === 1) {
-    if (typeof args[0] === 'string' || typeof args[0] === 'undefined') {
-      return { message: args[0] || defaultMessage }
+const parseInputWithDefaultMessage = ({
+  args,
+  defaultMessage,
+  codesDefinition,
+}: {
+  args: ErroryArgs<any>
+  defaultMessage: string
+  codesDefinition: Record<string, CodeDefinition>
+}) => {
+  const input = (() => {
+    if (args.length === 0) {
+      return { message: undefined }
+    } else if (args.length === 1) {
+      if (typeof args[0] === 'string' || typeof args[0] === 'undefined') {
+        return { message: args[0] || undefined }
+      } else {
+        return args[0]
+      }
     } else {
-      return args[0]
+      return { message: args[0] || undefined, ...args[1] }
     }
-  } else {
-    return { message: args[0] || defaultMessage, ...args[1] }
+  })()
+  if (input.message) {
+    return input
   }
+  const codeDefinition = codesDefinition[input.code]
+  if (!codeDefinition?.message) {
+    return {
+      ...input,
+      message: defaultMessage,
+    }
+  }
+  return { ...input, message: codeDefinition.message }
 }
 
 export const createErroryThings = <TCode extends string>(createInput?: CreateErroryInput<TCode>) => {
@@ -136,17 +157,17 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
     constructor(input: ErroryInput<TCode>)
     constructor(message: string | undefined, input: ErroryInputWithoutMessage<TCode>)
     constructor(...args: ErroryArgs<TCode>) {
-      const input = parseInputWithDefaultMessage(args, defaultMessageGlobal)
+      const input = parseInputWithDefaultMessage({ args, defaultMessage: defaultMessageGlobal, codesDefinition })
       super(input.message)
       this.cause = input.cause
       const causeErrory = input.cause instanceof Errory ? input.cause : null
 
       const exCodes = causeErrory?.codes || []
       this.code = input.code || causeErrory?.code || unexpectedCodes[0] || allAvailableCodes[0]
-      this.codes = [...new Set([this.code, ...(input.codes || []), ...exCodes])]
+      this.codes = [...new Set([this.code, ...(input.codes || []), ...exCodes])].filter(Boolean)
       const exTags = causeErrory?.tags || []
       this.tag = input.tag || this.tags[0] || defaultTagGlobal
-      this.tags = [...new Set([this.tag, ...(input.tags || []), ...exTags])]
+      this.tags = [...new Set([this.tag, ...(input.tags || []), ...exTags])].filter(Boolean)
 
       const defaultMessage = this.message
       this.message = input.message || defaultMessage
@@ -221,7 +242,11 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
         meta = { ...defaultMetaGlobal, ...definition.meta }
 
         constructor(...args: ErroryArgs<TCode>) {
-          const input = parseInputWithDefaultMessage(args, definition.message || defaultMessageGlobal)
+          const input = parseInputWithDefaultMessage({
+            args,
+            defaultMessage: definition.message || defaultMessageGlobal,
+            codesDefinition,
+          })
           super(input.message)
         }
       },

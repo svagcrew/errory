@@ -169,8 +169,7 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
       this.tag = input.tag || this.tags[0] || defaultTagGlobal
       this.tags = [...new Set([this.tag, ...(input.tags || []), ...exTags])].filter(Boolean)
 
-      const defaultMessage = this.message
-      this.message = input.message || defaultMessage
+      this.message = input.message || defaultMessageGlobal
       const exMessages = causeErrory?.messages || []
       this.messages = [this.message, ...exMessages]
       const defaultHttpStatus = this.httpStatus
@@ -195,7 +194,7 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
     }
 
     cause?: any
-    message: string = defaultMessageGlobal
+    message: string
     messages: string[] = []
     code: TCode
     codes: TCode[] = []
@@ -235,19 +234,19 @@ export const createErroryThings = <TCode extends string>(createInput?: CreateErr
     return {
       ...acc,
       [`Errory${code[0].toUpperCase() + code.slice(1)}`]: class extends Errory {
-        code = code
-        message = definition.message || defaultMessageGlobal
-        httpStatus = toHttpStatus(definition.httpStatus || defaultHttpStatusGlobal)
-        expected = definition.expected || defaultExpectedGlobal
-        meta = { ...defaultMetaGlobal, ...definition.meta }
-
         constructor(...args: ErroryArgs<TCode>) {
           const input = parseInputWithDefaultMessage({
             args,
             defaultMessage: definition.message || defaultMessageGlobal,
             codesDefinition,
           })
+
           super(input.message)
+          // TODO:ASAP send it to super ↓
+          this.code = code
+          this.httpStatus = toHttpStatus(definition.httpStatus || defaultHttpStatusGlobal)
+          this.expected = definition.expected || defaultExpectedGlobal
+          this.meta = { ...defaultMetaGlobal, ...definition.meta }
         }
       },
     }
